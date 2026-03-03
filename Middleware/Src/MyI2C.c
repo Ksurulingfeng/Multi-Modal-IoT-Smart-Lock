@@ -13,14 +13,14 @@ static uint8_t pin_read(void *port, uint16_t pin)
     return HAL_GPIO_ReadPin(gpio, pin) == GPIO_PIN_SET ? 1 : 0;
 }
 
-static void i2c_delay(uint32_t us)
+//========== I2C时序操作 ==========
+static void i2c_delay(MyI2C_Device *dev)
 {
-    for (volatile uint32_t i = 0; i < us * 8; i++) {
+    for (volatile uint32_t i = 0; i < dev->delay_us * 8; i++) {
         __NOP();
     }
 }
 
-//========== I2C时序操作 ==========
 static void scl_set(MyI2C_Device *dev, uint8_t val)
 {
     pin_write(dev->scl_port, dev->scl_pin, val);
