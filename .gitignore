@@ -10,6 +10,8 @@
 /obj
 /out
 /MDK-ARM/smart_door_lock
+/MDK-ARM/smart_door_lock.uvoptx
+/MDK-ARM/smart_door_lock.uvguix.*
 
 # config file
 /Config/config.h
