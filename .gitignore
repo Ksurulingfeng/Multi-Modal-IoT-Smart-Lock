@@ -9,6 +9,10 @@
 /bin
 /obj
 /out
+/MDK-ARM/smart_door_lock
+
+# config file
+/Config/config.h
 
 # eide template
 *.ept
