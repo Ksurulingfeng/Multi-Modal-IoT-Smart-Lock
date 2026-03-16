@@ -45,12 +45,12 @@ void doorLock_init(void)
     }
 
     Lock_Door();
-    display_chineses(32, 0, (const uint16_t[]){28, 29, 30, 31}, 4);
+    display_text(32, 0, "智能门锁");
     vTaskDelay(pdMS_TO_TICKS(200));
     LED_Toggle();
     vTaskDelay(pdMS_TO_TICKS(200));
     LED_Toggle();
-    // vTaskDelay(pdMS_TO_TICKS(1600));
+    vTaskDelay(pdMS_TO_TICKS(1000));
     display_clear();
 }
 

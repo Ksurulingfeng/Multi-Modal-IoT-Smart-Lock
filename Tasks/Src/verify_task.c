@@ -24,29 +24,26 @@ void vVerifyTask(void *pvParameters)
                 AuthType auth_type = (AuthType)pulNotificationValue;
                 switch (auth_type) {
                     case AUTH_PASSWORD: {
-                        // "请输入密码:"
-                        display_chineses(0, 0, (const uint16_t[]){18, 22, 23, 10, 11}, 5);
-                        display_string(80, 0, ":");
+
                         if (doorLock.isAdminMode == false) {
-                            display_string(0, 2, "#:bksp      *:ok");
+                            display_text(0, 0, "请输入密码:"); // "请输入密码:"
+                        } else {
+                            display_text(0, 0, "管理员密码:"); // "管理员密码:"
                         }
+                        display_text(0, 2, "#:退格    *:确认");
 
                         char password[PASSWORD_MAX_LEN + 1] = {0};
                         verify_result                       = password_verify();
                         break;
                     }
                     case AUTH_FINGER: {
-                        // "正在验证指纹..."
-                        display_chineses(0, 0, (const uint16_t[]){0, 1, 2, 3, 8, 9}, 6);
-                        display_string(96, 0, "...");
+                        display_text(0, 0, "正在验证指纹..."); // "正在验证指纹..."
 
                         verify_result = fingerprint_verify(&foundFingerID);
                         break;
                     }
                     case AUTH_NFC: {
-                        // "正在验证NFC..."
-                        display_chineses(0, 0, (const uint16_t[]){0, 1, 2, 3}, 4);
-                        display_string(64, 0, "NFC...");
+                        display_text(0, 0, "正在验证NFC..."); // "正在验证NFC..."
 
                         verify_result = nfc_verify(&foundFingerID);
                         break;
@@ -56,8 +53,7 @@ void vVerifyTask(void *pvParameters)
                     case VERIFY_SUCCESS:
                         xTaskNotify(doorLockControlTask_handle, (uint32_t)EVT_VERIFY_SUCCESS, eSetValueWithOverwrite);
                         if (auth_type == AUTH_FINGER || auth_type == AUTH_NFC) {
-                            // 显示识别到的ID
-                            display_string(0, 2, "ID:");
+                            display_text(0, 2, "ID:");
                             display_number(24, 2, foundFingerID, 2);
                         }
                         for (uint16_t i = 0; i < MAX_TRY_COUNT; i++) {

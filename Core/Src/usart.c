@@ -286,8 +286,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         
     }
     if (huart->Instance == USART2) {
-        extern ESP8266_HandleTypeDef hesp;
-        ESP8266_RxCallback(&hesp);
+        // extern ESP8266_HandleTypeDef hesp;
+        // ESP8266_RxCallback(&hesp);
     }
     if (huart->Instance == USART3) {
 

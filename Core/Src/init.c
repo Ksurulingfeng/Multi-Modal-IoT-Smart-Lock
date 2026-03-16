@@ -66,6 +66,7 @@ void System_Init(void)
     HAL_Delay(500);
     OLED_Init();
     Servo_Init();
+    
     AS608_Init(&has608, &huart3, AS608_IRQ_GPIO_Port, AS608_IRQ_Pin);
     MFRC522_Init(&hrc522, &hspi1, SPI1_CS_GPIO_Port, SPI1_CS_Pin);
 

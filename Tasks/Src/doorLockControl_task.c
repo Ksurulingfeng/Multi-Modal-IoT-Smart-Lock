@@ -27,9 +27,9 @@ void vDoorLockControlTask(void *pvParameters)
                     } else if (event == EVT_NETWORK_UNLOCK) {
                         Unlock_Door();
                         Success_Sound();
-                        // "验证成功"
+
                         display_clear_area(0, 0, 127, 2);
-                        display_chineses(0, 0, (const uint16_t[]){2, 3, 4, 5}, 4);
+                        display_text(0, 0, "验证成功"); // "验证成功"
                         doorLock.state = STATE_UNLOCKED;
                     }
                 }
@@ -49,9 +49,9 @@ void vDoorLockControlTask(void *pvParameters)
                         case EVT_VERIFY_SUCCESS:
                             if (!doorLock.isAdminMode)
                                 Unlock_Door();
-                            // "验证成功"
+
                             display_clear_area(0, 0, 127, 2);
-                            display_chineses(0, 0, (const uint16_t[]){2, 3, 4, 5}, 4);
+                            display_text(0, 0, "验证成功!"); // "验证成功"
                             Success_Sound();
 
                             if (!doorLock.isAdminMode)
@@ -62,9 +62,8 @@ void vDoorLockControlTask(void *pvParameters)
                             break;
 
                         case EVT_VERIFY_FAIL:
-                            // "验证失败"
                             display_clear_area(0, 0, 127, 2);
-                            display_chineses(0, 0, (const uint16_t[]){2, 3, 6, 7}, 4);
+                            display_text(0, 0, "验证失败!"); // "验证失败"
 
                             Error_Sound();
                             vTaskDelay(pdMS_TO_TICKS(FAIL_DURATION));
@@ -73,9 +72,8 @@ void vDoorLockControlTask(void *pvParameters)
                             break;
 
                         case EVT_VERIFY_TIMEOUT:
-                            // "验证超时"
                             display_clear();
-                            display_chineses(0, 0, (const uint16_t[]){2, 3, 12, 13}, 4);
+                            display_text(0, 0, "验证超时!"); // "验证超时"
 
                             Error_Sound();
                             vTaskDelay(pdMS_TO_TICKS(FAIL_DURATION));
@@ -95,13 +93,9 @@ void vDoorLockControlTask(void *pvParameters)
 
             case STATE_ALARM:
                 display_clear();
-                // "失败次数过多"
-                display_chineses(0, 0, (const uint16_t[]){6, 7, 14, 15, 16, 17}, 6);
+                display_text(0, 0, "失败次数过多"); // "失败次数过多"
+                display_text(0, 2, "请60s后再试");  //  "请60s后再试"
                 Error_Sound();
-                //  "请60s后再试"
-                display_chinese(0, 2, 18);
-                display_string(32, 2, "s");
-                display_chineses(48, 2, (const uint16_t[]){19, 20, 21}, 3);
                 // 锁定60s
                 TickType_t pxPreviousWakeTime = xTaskGetTickCount();
                 for (uint16_t i = 0; i < ALARM_DURATION; i++) {

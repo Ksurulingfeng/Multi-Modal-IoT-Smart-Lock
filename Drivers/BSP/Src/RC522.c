@@ -1,6 +1,32 @@
 #include "RC522.h"
 #include "MySPI.h"
 
+// 写寄存器
+static void MFRC522_WriteRegister(RC522_HandleTypeDef *hrc522, uint8_t addr, uint8_t data)
+{
+    addr = (addr << 1) & 0x7E; // Address format: 0XXXXXX0
+    MySPI_WriteReg(hrc522->hspi, hrc522->CS_Port, hrc522->CS_Pin, addr, data);
+}
+
+// 读寄存器
+static uint8_t MFRC522_ReadRegister(RC522_HandleTypeDef *hrc522, uint8_t addr)
+{
+    addr = ((addr << 1) & 0x7E) | 0x80; // Address format: 1XXXXXX0
+    return MySPI_ReadReg(hrc522->hspi, hrc522->CS_Port, hrc522->CS_Pin, addr);
+}
+
+// 按位设置
+static void MFRC522_SetBitMask(RC522_HandleTypeDef *hrc522, uint8_t reg, uint8_t mask)
+{
+    MFRC522_WriteRegister(hrc522, reg, MFRC522_ReadRegister(hrc522, reg) | mask);
+}
+
+// 按位清除
+static void MFRC522_ClearBitMask(RC522_HandleTypeDef *hrc522, uint8_t reg, uint8_t mask)
+{
+    MFRC522_WriteRegister(hrc522, reg, MFRC522_ReadRegister(hrc522, reg) & (~mask));
+}
+
 // RC522初始化
 void MFRC522_Init(RC522_HandleTypeDef *hrc522, SPI_HandleTypeDef *hspi,
                   GPIO_TypeDef *CS_Port, uint16_t CS_Pin)
@@ -22,37 +48,11 @@ void MFRC522_Init(RC522_HandleTypeDef *hrc522, SPI_HandleTypeDef *hspi,
     MFRC522_AntennaOn(hrc522); // 打开天线
 }
 
-// 写寄存器
-void MFRC522_WriteRegister(RC522_HandleTypeDef *hrc522, uint8_t addr, uint8_t data)
-{
-    addr = (addr << 1) & 0x7E; // Address format: 0XXXXXX0
-    MySPI_WriteReg(hrc522->hspi, hrc522->CS_Port, hrc522->CS_Pin, addr, data);
-}
-
-// 读寄存器
-uint8_t MFRC522_ReadRegister(RC522_HandleTypeDef *hrc522, uint8_t addr)
-{
-    addr = ((addr << 1) & 0x7E) | 0x80; // Address format: 1XXXXXX0
-    return MySPI_ReadReg(hrc522->hspi, hrc522->CS_Port, hrc522->CS_Pin, addr);
-}
-
-// 按位设置
-void MFRC522_SetBitMask(RC522_HandleTypeDef *hrc522, uint8_t reg, uint8_t mask)
-{
-    MFRC522_WriteRegister(hrc522, reg, MFRC522_ReadRegister(hrc522, reg) | mask);
-}
-
-// 按位清除
-void MFRC522_ClearBitMask(RC522_HandleTypeDef *hrc522, uint8_t reg, uint8_t mask)
-{
-    MFRC522_WriteRegister(hrc522, reg, MFRC522_ReadRegister(hrc522, reg) & (~mask));
-}
-
 // 检测是否检测到卡片
 uint8_t MFRC522_GetCardState(RC522_HandleTypeDef *hrc522)
 {
     uint8_t str[4] = {0};
-    return MFRC522_Request(hrc522, PICC_REQALL, str) == MI_OK;
+    return MFRC522_Request(hrc522, PICC_REQALL, str);
 }
 
 // 检测RFID标签
@@ -153,7 +153,7 @@ uint8_t MFRC522_Request(RC522_HandleTypeDef *hrc522, uint8_t reqMode, uint8_t *T
     MFRC522_WriteRegister(hrc522, MFRC522_REG_BIT_FRAMING, 0x07);
     TagType[0] = reqMode;
     status     = MFRC522_ToCard(hrc522, PCD_TRANSCEIVE, TagType, 1, TagType, &backBits);
-    if ((status != MI_OK) || (backBits != 0x10)) status = MI_ERR;
+    if (backBits != 0x10) status = MI_ERR;
     return status;
 }
 
@@ -178,7 +178,7 @@ uint8_t MFRC522_Anticoll(RC522_HandleTypeDef *hrc522, uint8_t *serNum)
 }
 
 // 校验CRC
-void MFRC522_CalculateCRC(RC522_HandleTypeDef *hrc522, uint8_t *pIndata, uint8_t len, uint8_t *pOutData)
+static void MFRC522_CalculateCRC(RC522_HandleTypeDef *hrc522, uint8_t *pIndata, uint8_t len, uint8_t *pOutData)
 {
     uint8_t i, n;
 
@@ -242,7 +242,7 @@ uint8_t MFRC522_Auth(RC522_HandleTypeDef *hrc522, uint8_t authMode, uint8_t Bloc
 }
 
 // 读取块数据
-uint8_t MFRC522_Read(RC522_HandleTypeDef *hrc522, uint8_t blockAddr, uint8_t *recvData)
+static uint8_t MFRC522_Read(RC522_HandleTypeDef *hrc522, uint8_t blockAddr, uint8_t *recvData)
 {
     uint8_t status;
     uint16_t unLen;
@@ -256,7 +256,7 @@ uint8_t MFRC522_Read(RC522_HandleTypeDef *hrc522, uint8_t blockAddr, uint8_t *re
 }
 
 // 写入块数据
-uint8_t MFRC522_Write(RC522_HandleTypeDef *hrc522, uint8_t blockAddr, uint8_t *writeData)
+static uint8_t MFRC522_Write(RC522_HandleTypeDef *hrc522, uint8_t blockAddr, uint8_t *writeData)
 {
     uint8_t status;
     uint16_t recvBits;
@@ -282,6 +282,7 @@ uint8_t MFRC522_Write(RC522_HandleTypeDef *hrc522, uint8_t blockAddr, uint8_t *w
 void MFRC522_Reset(RC522_HandleTypeDef *hrc522)
 {
     MFRC522_WriteRegister(hrc522, MFRC522_REG_COMMAND, PCD_RESETPHASE);
+    HAL_Delay(20);
 }
 
 // 开启天线

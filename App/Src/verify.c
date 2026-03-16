@@ -28,22 +28,20 @@ VerifyResult_t fingerprint_verify(uint16_t *foundPageID)
 
 VerifyResult_t nfc_verify(uint16_t *foundPageID)
 {
-    uint32_t startTime = xTaskGetTickCount();
-    uint8_t temp[4]    = {0};
-    while (xTaskGetTickCount() - startTime < NFC_TIMEOUT) {
-        if (MFRC522_Request(&hrc522, PICC_REQALL, temp) == MI_OK) {
-            if (MFRC522_Anticoll(&hrc522, temp) == MI_OK) {
-                for (uint8_t i = 0; i < CARD_MAX_NUM; i++) {
-                    if (memcmp(doorLock.cardID[i], temp, CARD_SIZE) == 0) {
-                        *foundPageID = i;
-                        return VERIFY_SUCCESS;
-                    }
-                }
-                return VERIFY_FAIL;
+    uint32_t startTime    = xTaskGetTickCount();
+    uint8_t temp[4]       = {0};
+    VerifyResult_t status = VERIFY_FAIL;
+    if (MFRC522_Anticoll(&hrc522, temp) == MI_OK) {
+        for (uint8_t i = 0; i < CARD_MAX_NUM; i++) {
+            if (memcmp(doorLock.cardID[i], temp, CARD_SIZE) == 0) {
+                *foundPageID = i;
+                status       = VERIFY_SUCCESS;
+                break;
             }
         }
-    }
-    return VERIFY_TIMEOUT;
+    };
+    MFRC522_Halt(&hrc522); // 命令卡进入休眠状态
+    return status;
 }
 
 VerifyResult_t password_verify(void)
@@ -69,12 +67,12 @@ VerifyResult_t password_verify(void)
             }
             if (index < sizeof(input_password) - 1) {
                 input_password[index++] = keyNum;
-                display_char(8 * (index - 1), 2, '*');
+                display_text(8 * (index - 1), 2, "*");
             }
         } else if (keyNum == '*') { // 退格
             if (index > 0) {
                 input_password[--index] = 0;
-                display_char(8 * index, 2, ' ');
+                display_text(8 * index, 2, " ");
             }
         } else if (keyNum == '#') { // 确认
             input_password[index] = '\0';

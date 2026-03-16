@@ -36,15 +36,12 @@ void OLED_Clear_sw(uint8_t x, uint8_t x2, uint8_t y1, uint8_t y2);
 void OLED_ShowFNum(uint8_t x, uint8_t y, float num, uint8_t len, uint8_t size, uint8_t mode);
 void OLED_ShowChar(uint8_t x, uint8_t y, uint8_t chr, uint8_t Char_Size);
 void OLED_ShowChar_Complete(uint8_t x, uint8_t y, uint8_t chr, uint8_t Char_Size, uint8_t mode);
-void OLED_ShowNum(uint8_t x, uint8_t y, uint32_t num, uint8_t len, uint8_t size);
+void OLED_ShowNum(uint8_t x, uint8_t y, uint32_t num, uint8_t len, uint8_t size, uint8_t mode);
 void OLED_ShowString(uint8_t x, uint8_t y, uint8_t *p, uint8_t Char_Size, uint8_t mode);
 void OLED_Set_Pos(uint8_t x, uint8_t y);
 void OLED_Set_Pos2(uint8_t x, uint8_t y);
-void OLED_ShowCHinese(uint8_t x, uint8_t y, uint8_t no);
-void OLED_DrawBMP(uint8_t x0,
-                  uint8_t y0,
-                  uint8_t x1,
-                  uint8_t y1,
-                  uint8_t BMP[]);
+void OLED_ShowCHinese(uint8_t x, uint8_t y, uint8_t *s, uint8_t mode);
+void OLED_ShowText(uint8_t x, uint8_t y, uint8_t *text, uint8_t Char_Size, uint8_t mode);
+void OLED_DrawBMP(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t BMP[]);
 
 #endif

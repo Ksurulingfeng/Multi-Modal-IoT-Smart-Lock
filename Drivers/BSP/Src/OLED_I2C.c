@@ -302,7 +302,7 @@ static uint32_t oled_pow(uint8_t m, uint8_t n)
 //len :数字的位数
 //size:字体大小
 **********************************************/
-void OLED_ShowNum(uint8_t x, uint8_t y, uint32_t num, uint8_t len, uint8_t size2)
+void OLED_ShowNum(uint8_t x, uint8_t y, uint32_t num, uint8_t len, uint8_t size, uint8_t mode) 
 {
     uint8_t t, temp;
     uint8_t enshow = 0;
@@ -310,12 +310,12 @@ void OLED_ShowNum(uint8_t x, uint8_t y, uint32_t num, uint8_t len, uint8_t size2
         temp = (num / oled_pow(10, len - t - 1)) % 10;
         if (enshow == 0 && t < (len - 1)) {
             if (temp == 0) {
-                OLED_ShowChar(x + (size2 / 2) * t, y, ' ', size2);
+                OLED_ShowChar_Complete(x + (size / 2) * t, y, ' ', size, mode);
                 continue;
             } else
                 enshow = 1;
         }
-        OLED_ShowChar(x + (size2 / 2) * t, y, temp + '0', size2);
+        OLED_ShowChar_Complete(x + (size / 2) * t, y, temp + '0', size, mode);
     }
 }
 
@@ -393,18 +393,51 @@ void OLED_ShowString(uint8_t x, uint8_t y, uint8_t *chr, uint8_t Char_Size, uint
 /**********************************************
 //显示汉字
 **********************************************/
-void OLED_ShowCHinese(uint8_t x, uint8_t y, uint8_t no)
+void OLED_ShowCHinese(uint8_t x, uint8_t y, uint8_t *s, uint8_t mode)
 {
-    uint8_t t, adder = 0;
-    OLED_Set_Pos(x, y);
-    for (t = 0; t < 16; t++) {
-        OLED_WR_Byte(Hzk[2 * no][t], OLED_DATA);
-        adder += 1;
+    uint16_t HZnum = sizeof(tfont16) / sizeof(typFNT_GB16); // 统计汉字数目
+
+    for (uint16_t k = 0; k < HZnum; k++) {
+        if ((tfont16[k].Index[0] == *(s)) &&
+            (tfont16[k].Index[1] == *(s + 1)) &&
+            (tfont16[k].Index[2] == *(s + 2))) {
+            OLED_Set_Pos(x, y);
+            for (uint8_t i = 0; i < 16; i++) {
+                if (mode == 0)
+                    OLED_WR_Byte_Inverse(tfont16[k].Msk[i], OLED_DATA);
+                else
+                    OLED_WR_Byte(tfont16[k].Msk[i], OLED_DATA);
+            }
+            OLED_Set_Pos(x, y + 1);
+            for (uint8_t i = 16; i < 32; i++) {
+                if (mode == 0)
+                    OLED_WR_Byte_Inverse(tfont16[k].Msk[i], OLED_DATA);
+                else
+                    OLED_WR_Byte(tfont16[k].Msk[i], OLED_DATA);
+            }
+            break;
+        }
     }
-    OLED_Set_Pos(x, y + 1);
-    for (t = 0; t < 16; t++) {
-        OLED_WR_Byte(Hzk[2 * no + 1][t], OLED_DATA);
-        adder += 1;
+}
+
+/**********************************************
+//显示文本
+**********************************************/
+void OLED_ShowText(uint8_t x, uint8_t y, uint8_t *text, uint8_t Char_Size, uint8_t mode)
+{
+    while (*text) {
+        // 判断是否为汉字（GB2312编码中汉字高位为1）
+        if (*text >= 0x81 && *(text + 1) >= 0x40) {
+            // 显示汉字（占3字节）
+            OLED_ShowCHinese(x, y, text, mode);
+            text += 3; // 跳过3字节汉字编码
+            x += 16;   // 汉字占16列
+        } else {
+            // 显示ASCII字符（原有的显示字符函数）
+            OLED_ShowChar_Complete(x, y, *text, Char_Size, mode);
+            text += 1; // 跳过1字节ASCII码
+            x += 8;    // ASCII字符占8列
+        }
     }
 }
 
@@ -412,7 +445,7 @@ void OLED_ShowCHinese(uint8_t x, uint8_t y, uint8_t no)
 功能描述：显示BMP图片
 //x0，y0视屏幕而定
 **********************************************/
-void OLED_DrawBMP(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t BMP[])
+void OLED_DrawBMP(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t BMP[])
 {
     uint32_t j = 0;
     uint8_t x, y;

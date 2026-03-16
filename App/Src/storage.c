@@ -13,9 +13,8 @@ extern RC522_HandleTypeDef hrc522;
 
 bool add_fingerprint(uint16_t page_id)
 {
-    // "请按下指纹"
     display_clear();
-    display_chineses(0, 0, (uint16_t[]){18, 34, 35, 8, 9}, 5);
+    display_text(0, 0, "请按下指纹"); // "请按下指纹"
 
     const TickType_t timeout = pdMS_TO_TICKS(10000);
     TickType_t startTime     = xTaskGetTickCount();
@@ -23,10 +22,8 @@ bool add_fingerprint(uint16_t page_id)
         if (xTaskGetTickCount() - startTime >= timeout)
             return false; // 超时
         if (AS608_GetFingerState(&has608) == AS608_FINGER_PRESSED) {
-            // "正在采集指纹..."
             display_clear();
-            display_chineses(0, 0, (uint16_t[]){0, 1, 47, 48, 8, 9}, 6);
-            display_string(96, 0, "...");
+            display_text(0, 0, "正在采集指纹..."); // "正在采集指纹..."
             vTaskDelay(pdMS_TO_TICKS(150));
             if (PS_GetImage(&has608) == ACK_OK) {
                 if (PS_GenChar(&has608, BUFFER1) == ACK_OK) {
@@ -38,10 +35,9 @@ bool add_fingerprint(uint16_t page_id)
         }
     }
 
-    // "请再次按下指纹"
     display_clear();
     vTaskDelay(pdMS_TO_TICKS(2000));
-    display_chineses(0, 0, (uint16_t[]){18, 20, 14, 34, 35, 8, 9}, 7);
+    display_text(0, 0, "请再次按下指纹"); // "请再次按下指纹"
 
     // 再次采集指纹
     startTime = xTaskGetTickCount();
@@ -49,10 +45,8 @@ bool add_fingerprint(uint16_t page_id)
         if (xTaskGetTickCount() - startTime >= timeout)
             return false; // 超时
         if (AS608_GetFingerState(&has608) == AS608_FINGER_PRESSED) {
-            // "正在采集指纹..."
             display_clear();
-            display_chineses(0, 0, (uint16_t[]){0, 1, 47, 48, 8, 9}, 6);
-            display_string(96, 0, "...");
+            display_text(0, 0, "正在采集指纹..."); // "正在采集指纹..."
             vTaskDelay(pdMS_TO_TICKS(150));
             if (PS_GetImage(&has608) == ACK_OK) {
                 if (PS_GenChar(&has608, BUFFER2) == ACK_OK) {
@@ -83,22 +77,19 @@ bool add_card(uint16_t page_id)
 {
     if (page_id >= CARD_MAX_NUM) return false; // 超过最大卡片数量
 
-    // "请将卡片靠近"
     display_clear();
-    display_chineses(0, 0, (uint16_t[]){18, 40, 41, 42, 43, 44}, 6);
+    display_text(0, 0, "请将卡片靠近"); // "请将卡片靠近"
 
     const TickType_t timeout = pdMS_TO_TICKS(10000);
     TickType_t startTime     = xTaskGetTickCount();
     uint8_t temp[4]          = {0};
     while (xTaskGetTickCount() - startTime < timeout) {
-        if (MFRC522_Request(&hrc522, PICC_REQALL, temp) == MI_OK) {
-            if (MFRC522_Anticoll(&hrc522, temp) == MI_OK) {
-                // 保存到内存
-                memcpy(doorLock.cardID[page_id], temp, CARD_SIZE);
-                // 写入EEPROM
-                AT24Cxx_Write(CARD_ADDR + page_id * CARD_SIZE, temp, CARD_SIZE);
-                return true; // 添加成功
-            }
+        if (MFRC522_CheckCard(&hrc522, temp) == MI_OK) {
+            // 保存到内存
+            memcpy(doorLock.cardID[page_id], temp, CARD_SIZE);
+            // 写入EEPROM
+            AT24Cxx_Write(CARD_ADDR + page_id * CARD_SIZE, temp, CARD_SIZE);
+            return true; // 添加成功
         }
     }
     return false; // 超时
@@ -106,7 +97,7 @@ bool add_card(uint16_t page_id)
 
 bool delete_card(uint16_t page_id)
 {
-    if (page_id > CARD_MAX_NUM) return false; // 超过最大卡片数量
+    if (page_id >= CARD_MAX_NUM) return false; // 超过最大卡片数量
     // 内存清空
     memset(doorLock.cardID[page_id], 0, CARD_SIZE);
     // EEPROM清空
@@ -117,6 +108,9 @@ bool delete_card(uint16_t page_id)
 bool set_password(const char *password)
 {
     char current_password[PASSWORD_MAX_LEN + 1] = {0};
+    // 保存到内存
+    memcpy(doorLock.password, password, PASSWORD_MAX_LEN);
+    // 写入EEPROM
     AT24Cxx_Write(PASSWORD_ADDR, (uint8_t *)password, strlen(password) + 1);
     AT24Cxx_Read(PASSWORD_ADDR, (uint8_t *)current_password, strlen(password) + 1);
 
