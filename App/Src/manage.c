@@ -362,7 +362,7 @@ static void set_password_ui(void)
             }
             if (index < PASSWORD_MAX_LEN) {
                 password[index] = keyNum;
-                display_text(8 * index, 2, &keyNum);
+                display_text(0, 2, password);
                 index++;
             }
         } else if (keyNum == '*') {
