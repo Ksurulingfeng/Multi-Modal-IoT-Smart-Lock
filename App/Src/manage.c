@@ -45,7 +45,7 @@ void manage_ui(void)
         if (need_refresh) {
             display_clear();
             display_title(ui); // 显示当前模式标题
-            display_text(0, 2, "*:next      #:ok");
+            display_text(0, 2, "#:下一个  *:确认");
             need_refresh = 0;
         }
 
@@ -153,7 +153,7 @@ static void add_fingerprint_ui(void)
             // 限制ID长度为2位(0~99)
             if (index < 2) {
                 input[index] = keyNum;
-                display_text(72 + 8 * index, 0, &keyNum);
+                display_text(72, 0, input);
                 index++;
             }
         }
@@ -204,7 +204,7 @@ static void del_fingerprint_ui(void)
             // 限制ID长度为2位(0~99)
             if (index <= 2) {
                 input[index] = keyNum;
-                display_text(72 + 8 * index, 0, &keyNum);
+                display_text(72, 0, input);
                 index++;
             }
         }
@@ -255,7 +255,7 @@ static void add_card_ui(void)
             // 限制ID长度为2位(0~99)
             if (index < 2) {
                 input[index] = keyNum;
-                display_text(72 + 8 * index, 0, &keyNum);
+                display_text(72, 0, input);
                 index++;
             }
         }
@@ -306,7 +306,7 @@ static void del_card_ui(void)
             // 限制ID长度为2位(0~99)
             if (index <= 2) {
                 input[index] = keyNum;
-                display_text(72 + 8 * index, 0, &keyNum);
+                display_text(72, 0, input);
                 index++;
             }
         }
@@ -375,7 +375,7 @@ static void set_password_ui(void)
 
             display_clear();
             display_text(0, 0, "确认修改密码?"); // 确认修改密码?
-            display_text(0, 2, "*:no       #:yes");
+            display_text(0, 2, "#:取消    *:确认");
             while (1) {
                 keyNum = Keypad_Scan(NULL);
                 if (keyNum == '*')
