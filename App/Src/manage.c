@@ -91,7 +91,7 @@ static void display_title(AdminMode_t mode)
             display_text(32, 0, "删除卡片"); // 删除卡片
             break;
         case ADMIN_MODE_SET_PWD:
-            display_text(32, 0, "设置密码"); // 设置密码
+            display_text(32, 0, "修改密码"); // 修改密码
             break;
         case ADMIN_MODE_EXIT:
             display_text(48, 0, "退出"); // 退出
@@ -202,7 +202,7 @@ static void del_fingerprint_ui(void)
         // 数字输入
         if (keyNum >= '0' && keyNum <= '9') {
             // 限制ID长度为2位(0~99)
-            if (index <= 2) {
+            if (index < 2) {
                 input[index] = keyNum;
                 display_text(72, 0, input);
                 index++;
