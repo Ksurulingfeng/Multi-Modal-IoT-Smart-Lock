@@ -29,7 +29,7 @@ TaskHandle_t keypadTask_handle;
 void vKeypadTask(void *pvParameters);
 /* 网络任务配置 */
 #define NETWORK_TASK_STACK    384
-#define NETWORK_TASK_PRIORITY 1
+#define NETWORK_TASK_PRIORITY 2
 TaskHandle_t networkTask_handle;
 void vNetworkTask(void *pvParameters);
 /* NFC识别任务配置 */

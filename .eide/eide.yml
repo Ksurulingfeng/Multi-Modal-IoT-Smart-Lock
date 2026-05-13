@@ -139,6 +139,8 @@ targets:
         - MDK-ARM/RTE/_smart_door_lock
       libList: []
     excludeList: []
+    settings:
+      debugger: cortex-debug
     toolchain: AC6
     toolchainConfigMap:
       AC5:
@@ -303,7 +305,7 @@ targets:
       probe-rs:
         allowEraseAll: false
         baseAddr: "0x08000000"
-        bin: ""
+        bin: ${ExecutableName}.axf
         otherOptions: ""
         protocol: swd
         speed: 10000
